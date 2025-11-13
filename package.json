@@ -1,0 +1,126 @@
+{
+  "name": "comment-typer",
+  "displayName": "⌨️ Comment Typer",
+  "description": "Печатает комментарии с эффектом печатающей машинки. Умные шаблоны, JSDoc, отладочный код",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.60.0"
+  },
+  "categories": [
+    "Other",
+    "Snippets",
+    "Formatters"
+  ],
+  "keywords": [
+    "comment",
+    "typing",
+    "animation",
+    "productivity",
+    "documentation",
+    "debug",
+    "templates"
+  ],
+  "activationEvents": [
+    "onCommand:comment-typer.startTyping",
+    "onCommand:comment-typer.todo",
+    "onCommand:comment-typer.fixme",
+    "onCommand:comment-typer.openTemplates"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "comment-typer.startTyping",
+        "title": "⌨️ Start Typing Animation",
+        "category": "Comment Tools",
+        "icon": "$(comment-discussion)"
+      },
+      {
+        "command": "comment-typer.todo",
+        "title": "✅ Insert TODO Template",
+        "category": "Comment Tools",
+        "icon": "$(checklist)"
+      },
+      {
+        "command": "comment-typer.fixme",
+        "title": "🐛 Insert FIXME Template",
+        "category": "Comment Tools",
+        "icon": "$(bug)"
+      },
+      {
+        "command": "comment-typer.openTemplates",
+        "title": "⚙️ Open Templates File",
+        "category": "Comment Tools",
+        "icon": "$(settings-gear)"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "comment-typer.todo",
+        "key": "ctrl+shift+/ t",
+        "mac": "cmd+shift+/ t",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "comment-typer.fixme",
+        "key": "ctrl+shift+/ f",
+        "mac": "cmd+shift+/ f",
+        "when": "editorTextFocus"
+      }
+    ],
+    "menus": {
+      "command-palette": [
+        {
+          "command": "comment-typer.startTyping"
+        },
+        {
+          "command": "comment-typer.todo"
+        },
+        {
+          "command": "comment-typer.fixme"
+        },
+        {
+          "command": "comment-typer.openTemplates"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "⌨️ Comment Typer",
+      "properties": {
+        "commentTyper.defaultStyle": {
+          "type": "string",
+          "default": "normal",
+          "enum": [
+            "normal",
+            "fast",
+            "slow",
+            "dramatic"
+          ],
+          "description": "Стиль печати по умолчанию"
+        },
+        "commentTyper.enableAnimations": {
+          "type": "boolean",
+          "default": true,
+          "description": "Включить анимацию печати"
+        },
+        "commentTyper.customTemplatesPath": {
+          "type": "string",
+          "default": "",
+          "description": "Путь к пользовательскому файлу шаблонов (абсолютный путь)"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/node": "16.x",
+    "@types/vscode": "^1.60.0",
+    "jsdoc": "^4.0.5",
+    "typescript": "^4.9.4"
+  }
+}
