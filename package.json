@@ -20,12 +20,6 @@
     "debug",
     "templates"
   ],
-  "activationEvents": [
-    "onCommand:comment-typer.startTyping",
-    "onCommand:comment-typer.todo",
-    "onCommand:comment-typer.fixme",
-    "onCommand:comment-typer.openTemplates"
-  ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [

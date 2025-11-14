@@ -1,96 +1,100 @@
 /**
- * Comment Typer - VSCode расширение для создания стилизованных комментариев
- * @module CommentTyper
- * @version 1.0
- * @description Плагин предоставляет инструменты для создания комментариев 
- * с эффектом печати, включая прогресс-бары, временные метки и ASCII арты.
+ * Comment Typer - VSCode extension for creating styled comments
+ * 
+ * Plugin provides tools for creating comments 
+ * with typing effect, including progress bars, timestamps and ASCII arts.
+ * 
+ * @packageDocumentation
  */
+
 import * as vscode from 'vscode';
 
 /**
- * Конфигурационные параметры плагина
- * @namespace CONFIG
- * @property {number} charDelay - Задержка между символами при печати (мс)
- * @property {number} progressBarLength - Длина прогресс-бара в символах
+ * Plugin configuration parameters
  */
-const CONFIG = {
+export const CONFIG = {
+    /** Delay between characters when typing (ms) */
     charDelay: 45,
+    /** Progress bar length in characters */
     progressBarLength: 10
 };
 
 /**
- * Коллекция ASCII артов для различных типов комментариев
- * @namespace ASCII_ART
- * @property {string} refactor - Арт для кода, требующего рефакторинга
- * @property {string} dontTouch - Арт для рабочего кода, который нельзя менять
- * @property {string} success - Арт для завершенных задач
- * @property {string} bug - Арт для сообщений об ошибках
- * @property {string} idea - Арт для предложений по улучшению
+ * Collection of ASCII arts for different comment types
  */
-const ASCII_ART = {
+export const ASCII_ART = {
+    /** Art for code that requires refactoring */
     refactor: '┌────────────────────┐\n│ТРЕБУЕТСЯ ПЕРЕДЕЛАТь│\n└────────────────────┘',
+    /** Art for working code that shouldn't be changed */
     dontTouch: '╔═════════════════════╗\n║     НЕ ТРОГАТЬ!     ║\n║ ─────────────────── ║\n║ РАБОТАЕТ, НЕ МЕНЯТЬ!║\n╚═════════════════════╝',
+    /** Art for completed tasks */
     success: '  ┌─────────────────┐\n  │УСПЕШНО ВЫПОЛНЕНО│\n  └─────────────────┘',
+    /** Art for error reports */
     bug: '▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄\n      ОБНАРУЖЕН БАГ \n  ──────────────────────\n  Требуется исправление!\n▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀',
+    /** Art for improvement suggestions */
     idea: '  ╭──────────────────────╮\n  │         ИДЕЯ         │\n  │   ────────────────   │\n  │     Предложение      │\n  │     по улучшению     │\n  ╰──────────────────────╯'
 };
 
 /**
- * Достижение пользователя
- * @typedef {Object} Achievement
- * @property {string} name - Название достижения с эмодзи
- * @property {Function} check - Функция проверки условия достижения
+ * User achievement
  */
+export interface Achievement {
+    /** Achievement name with emoji */
+    name: string;
+    /** Function to check achievement condition */
+    check: () => boolean;
+}
 
 /**
- * Массив достижений плагина
- * @type {Achievement[]}
+ * Plugin achievements array
  */
-const ACHIEVEMENTS = [
-    { name: "🎯 Первый комментарий!", check: () => stats.totalComments === 1 },
-    { name: "🏆 Комментатор", check: () => stats.totalComments >= 10 },
-    { name: "📊 Мастер прогресса", check: () => stats.progressBars >= 3 },
-    { name: "🕒 Хранитель времени", check: () => stats.timestampComments >= 5 },
-    { name: "🎨 ASCII художник", check: () => stats.asciiComments >= 5 }
+export const ACHIEVEMENTS: Achievement[] = [
+    { name: "🎯 First Comment!", check: () => stats.totalComments === 1 },
+    { name: "🏆 Commentator", check: () => stats.totalComments >= 10 },
+    { name: "📊 Progress Master", check: () => stats.progressBars >= 3 },
+    { name: "🕒 Time Keeper", check: () => stats.timestampComments >= 5 },
+    { name: "🎨 ASCII Artist", check: () => stats.asciiComments >= 5 }
 ];
 
 /**
- * Статистика использования плагина
- * @namespace stats
- * @property {number} totalComments - Общее количество комментариев
- * @property {number} progressBars - Количество созданных прогресс-баров
- * @property {number} timestampComments - Количество комментариев с временными метками
- * @property {number} asciiComments - Количество ASCII арт комментариев
+ * Plugin usage statistics
  */
-const stats = { totalComments: 0, progressBars: 0, timestampComments: 0, asciiComments: 0 };
+export const stats = { 
+    /** Total number of comments */
+    totalComments: 0, 
+    /** Number of created progress bars */
+    progressBars: 0, 
+    /** Number of timestamp comments */
+    timestampComments: 0, 
+    /** Number of ASCII art comments */
+    asciiComments: 0 
+};
 
 /**
- * Создает задержку выполнения
- * @param {number} ms - Время задержки в миллисекундах
- * @returns {Promise<void>} Promise, который разрешается после задержки
+ * Creates execution delay
+ * @param ms - Delay time in milliseconds
+ * @returns Promise that resolves after delay
  */
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+export const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 /**
- * Создает текстовое представление прогресс-бара
- * @param {number} percent - Процент выполнения (0-100)
- * @returns {string} Строка прогресс-бара в формате "[██████░░░░] 60%"
+ * Creates text representation of progress bar
+ * @param percent - Completion percentage (0-100)
+ * @returns Progress bar string in format "[██████░░░░] 60%"
  * @example
- * generateProgressBar(75); // returns "[███████░░░] 75%"
+ * generateProgressBar(75) // returns "[███████░░░] 75%"
  */
-const generateProgressBar = (percent: number) => {
+export const generateProgressBar = (percent: number) => {
     const filled = Math.round(percent / 100 * CONFIG.progressBarLength);
     return `[${'█'.repeat(filled)}${'░'.repeat(CONFIG.progressBarLength - filled)}] ${percent}%`;
 };
 
 /**
- * Вставляет комментарий в редактор с эффектом посимвольной печати
- * @async
- * @param {vscode.TextEditor} editor - Активный текстовый редактор
- * @param {string} text - Текст для вставки в виде комментария
- * @returns {Promise<void>}
+ * Inserts comment into editor with character-by-character typing effect
+ * @param editor - Active text editor
+ * @param text - Text to insert as comment
  */
-async function typeComment(editor: vscode.TextEditor, text: string) {
+export async function typeComment(editor: vscode.TextEditor, text: string) {
     let pos = editor.selection.active;
 
     for (const line of text.split('\n').filter(l => l.trim())) {
@@ -100,7 +104,8 @@ async function typeComment(editor: vscode.TextEditor, text: string) {
         }
 
         const lineToType = `// ${line}`;
-        for (const char of lineToType) {
+        for (let i = 0; i < lineToType.length; i++) {
+            const char = lineToType[i];
             await editor.edit(e => e.insert(pos, char));
             pos = pos.translate(0, 1);
             await delay(CONFIG.charDelay);
@@ -109,23 +114,20 @@ async function typeComment(editor: vscode.TextEditor, text: string) {
 }
 
 /**
- * Проверяет и разблокирует достижения пользователя
- * @function checkAchievements
+ * Checks and unlocks user achievements
  */
-function checkAchievements() {
+export function checkAchievements() {
     const unlocked = ACHIEVEMENTS.filter(a => a.check()).map(a => a.name);
-    if (unlocked.length) vscode.window.showInformationMessage(`🎉 Достижение: ${unlocked.join(', ')}`);
+    if (unlocked.length) vscode.window.showInformationMessage(`🎉 Achievement: ${unlocked.join(', ')}`);
 }
 
 /**
- * Создает комментарий и обновляет статистику
- * @async
- * @param {vscode.TextEditor} editor - Активный текстовый редактор
- * @param {string} content - Содержимое комментария
- * @param {string} [statKey] - Ключ статистики для инкремента
- * @returns {Promise<void>}
+ * Creates comment and updates statistics
+ * @param editor - Active text editor
+ * @param content - Comment content
+ * @param statKey - Statistics key to increment
  */
-async function createComment(editor: vscode.TextEditor, content: string, statKey?: keyof typeof stats) {
+export async function createComment(editor: vscode.TextEditor, content: string, statKey?: keyof typeof stats) {
     await typeComment(editor, content);
     stats.totalComments++;
     if (statKey) stats[statKey]++;
@@ -133,34 +135,30 @@ async function createComment(editor: vscode.TextEditor, content: string, statKey
 }
 
 /**
- * Создает комментарий с прогресс-баром
- * @async
- * @param {vscode.TextEditor} editor - Активный текстовый редактор
- * @returns {Promise<void>}
+ * Creates comment with progress bar
+ * @param editor - Active text editor
  */
-async function createProgressBar(editor: vscode.TextEditor) {
+export async function createProgressBar(editor: vscode.TextEditor) {
     const progress = await vscode.window.showInputBox({
-        placeHolder: 'Процент выполнения (0-100)',
-        validateInput: v => (v && +v >= 0 && +v <= 100) ? null : 'Введите число 0-100'
+        placeHolder: 'Completion percentage (0-100)',
+        validateInput: v => (v && +v >= 0 && +v <= 100) ? null : 'Enter number 0-100'
     });
     if (!progress) return;
 
-    const task = await vscode.window.showInputBox({ placeHolder: 'Опишите задачу' });
+    const task = await vscode.window.showInputBox({ placeHolder: 'Describe the task' });
     if (task !== undefined) {
         await createComment(editor, `📊 ${generateProgressBar(+progress)} ${task}`, 'progressBars');
     }
 }
 
 /**
- * Создает комментарий с временной меткой
- * @async
- * @param {vscode.TextEditor} editor - Активный текстовый редактор
- * @returns {Promise<void>}
+ * Creates comment with timestamp
+ * @param editor - Active text editor
  */
-async function createTimestampComment(editor: vscode.TextEditor) {
+export async function createTimestampComment(editor: vscode.TextEditor) {
     const text = await vscode.window.showInputBox({ 
-        placeHolder: 'Текст комментария',
-        value: 'запись'
+        placeHolder: 'Comment text',
+        value: 'record'
     });
     if (text !== undefined) {
         await createComment(editor, `${new Date().toLocaleString('ru-RU')}: ${text}`, 'timestampComments');
@@ -168,86 +166,96 @@ async function createTimestampComment(editor: vscode.TextEditor) {
 }
 
 /**
- * Отображает меню выбора ASCII артов
- * @async
- * @param {vscode.TextEditor} editor - Активный текстовый редактор
- * @returns {Promise<void>}
+ * Menu item for ASCII art selection
  */
-async function showAsciiArtMenu(editor: vscode.TextEditor) {
-    const items = [
-        { label: 'refactor', description: '🔄 Требуется переделать', art: ASCII_ART.refactor },
-        { label: 'dontTouch', description: '⚠️ Не трогать', art: ASCII_ART.dontTouch },
-        { label: 'success', description: '✅ Успешно выполнено', art: ASCII_ART.success },
-        { label: 'bug', description: '🐛 Обнаружен баг', art: ASCII_ART.bug },
-        { label: 'idea', description: '💡 Идея/предложение', art: ASCII_ART.idea }
+export interface AsciiArtItem {
+    /** Item identifier */
+    label: string;
+    /** Display description */
+    description: string;
+    /** ASCII art content */
+    art: string;
+}
+
+/**
+ * Displays ASCII art selection menu
+ * @param editor - Active text editor
+ */
+export async function showAsciiArtMenu(editor: vscode.TextEditor) {
+    const items: AsciiArtItem[] = [
+        { label: 'refactor', description: '🔄 Requires refactoring', art: ASCII_ART.refactor },
+        { label: 'dontTouch', description: '⚠️ Do not touch', art: ASCII_ART.dontTouch },
+        { label: 'success', description: '✅ Successfully completed', art: ASCII_ART.success },
+        { label: 'bug', description: '🐛 Bug detected', art: ASCII_ART.bug },
+        { label: 'idea', description: '💡 Idea/suggestion', art: ASCII_ART.idea }
     ];
 
     const selected = await vscode.window.showQuickPick(items, {
-        placeHolder: 'Выберите тип ASCII арта'
+        placeHolder: 'Select ASCII art type'
     });
     if (!selected) return;
 
     const userText = await vscode.window.showInputBox({
-        placeHolder: 'Дополнительный текст (необязательно)'
+        placeHolder: 'Additional text (optional)'
     });
     
     await createComment(editor, userText ? `${selected.art}\n${userText}` : selected.art, 'asciiComments');
 }
 
 /**
- * Показывает статистику использования плагина
- * @function showStatistics
+ * Shows plugin usage statistics
  */
-function showStatistics() {
-    const message = `📊 Статистика Comment Typer:
+export function showStatistics() {
+    const message = `📊 Comment Typer Statistics:
 
-• Всего комментариев: ${stats.totalComments}
-• Прогресс-баров: ${stats.progressBars}
-• С временными метками: ${stats.timestampComments}
-• ASCII артов: ${stats.asciiComments}
+• Total comments: ${stats.totalComments}
+• Progress bars: ${stats.progressBars}
+• Timestamp comments: ${stats.timestampComments}
+• ASCII arts: ${stats.asciiComments}
 
-🎯 Достижения:
+🎯 Achievements:
 ${ACHIEVEMENTS.map(a => `• ${a.name}`).join('\n')}`;
 
     vscode.window.showInformationMessage(message, { modal: true });
 }
 
 /**
- * Элемент главного меню плагина
- * @typedef {Object} MenuItem
- * @property {string} label - Идентификатор пункта меню
- * @property {string} description - Описание для отображения
- * @property {Function} handler - Функция-обработчик выбора
+ * Plugin main menu item
  */
+export interface MenuItem {
+    /** Menu item identifier */
+    label: string;
+    /** Display description */
+    description: string;
+    /** Selection handler function */
+    handler: (editor: vscode.TextEditor) => Promise<void>;
+}
 
 /**
- * Главное меню плагина
- * @type {MenuItem[]}
+ * Plugin main menu
  */
-const MENU_ITEMS = [
-    { label: 'progress', description: '📊 Создать прогресс-бар', handler: createProgressBar },
-    { label: 'timestamp', description: '🕒 Комментарий с временной меткой', handler: createTimestampComment },
-    { label: 'ascii', description: '🎨 ASCII арт комментарии', handler: showAsciiArtMenu },
-    { label: 'stats', description: '📈 Показать статистику', handler: showStatistics }
+export const MENU_ITEMS: MenuItem[] = [
+    { label: 'progress', description: '📊 Create progress bar', handler: createProgressBar },
+    { label: 'timestamp', description: '🕒 Comment with timestamp', handler: createTimestampComment },
+    { label: 'ascii', description: '🎨 ASCII art comments', handler: showAsciiArtMenu },
+    { label: 'stats', description: '📈 Show statistics', handler: async () => { showStatistics(); return Promise.resolve(); } }
 ];
 
 /**
- * Отображает главное меню плагина
- * @async
- * @function showMainMenu
- * @returns {Promise<void>}
+ * Displays plugin main menu
+ * @param editor - Active text editor
  */
-async function showMainMenu() {
+export async function showMainMenu() {
     const editor = vscode.window.activeTextEditor;
-    if (!editor) return vscode.window.showErrorMessage('Откройте файл с кодом!');
+    if (!editor) return vscode.window.showErrorMessage('Open a code file!');
 
     const choice = await vscode.window.showQuickPick(MENU_ITEMS);
     if (choice) await choice.handler(editor);
 }
 
 /**
- * Активирует расширение при запуске VSCode
- * @param {vscode.ExtensionContext} context - Контекст расширения VSCode
+ * Activates extension when VSCode starts
+ * @param context - VSCode extension context
  */
 export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(
@@ -257,6 +265,6 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 /**
- * Деактивирует расширение при закрытии VSCode
+ * Deactivates extension when VSCode closes
  */
 export function deactivate() {}
